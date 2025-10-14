@@ -259,8 +259,8 @@
 
 <main class="container">
     <header class="header">
-        <h1 class="title">🎭 Reaper to GrandMA3</h1>
-        <p class="subtitle">Convert your Reaper CSV marker files to GrandMA3 XML format</p>
+        <h1 class="title">🎶 Reaper Makers to GrandMA3 💡</h1>
+        <p class="subtitle">Auto-generate your GrandMA3 cues based on Reaper audio markers!</p>
     </header>
 
     <div class="card">
@@ -329,11 +329,11 @@
     </div>
 
     <div class="info-card">
-        <h3>How it works</h3>
+        <h3>How it works:</h3>
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <div>Export markers from Reaper as CSV</div>
+                <div>Export markers from Reaper as CSV using <code>Actions > Show Actions List > Export Markers (doubel click)</code></div>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
@@ -345,16 +345,28 @@
             </div>
             <div class="step">
                 <div class="step-number">4</div>
-                <div>Import both files into your GrandMA3 console</div>
+                <div>
+                    Move them to the following location:
+                    <ul>
+                        <li><code>Macro XML:</code> <code>/Users/MaxMustermann/MALightingTechnology/gma3_library/datapools/macros</code></li>
+                        <li><code>Timecode XML:</code> <code>/Users/MaxMustermann/MALightingTechnology/gma3_library/datapools/timecodes</code></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <div>In GrandMA3, press Edit, then on an empty slot in the Macros Data Pool and import the Macro XML file.</div>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <div>Execute your macro and have fun!</div>
             </div>
         </div>
-        <p class="note">
-            <strong>Note:</strong> This tool converts Reaper marker timestamps into GrandMA3 cue sequences and timecode tracks for synchronized lighting control.
-        </p>
     </div>
 
     <footer class="footer">
-        <p>Made with ❤️ for lighting professionals</p>
+        <p>Made with ❤️ and Svelte</p>
+        <p>&copy; 2025 Hannes Rüger</p>
     </footer>
 </main>
 
@@ -642,16 +654,6 @@
         justify-content: center;
         font-weight: 600;
         flex-shrink: 0;
-    }
-
-    .note {
-        background: #f0f9ff;
-        padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #0ea5e9;
-        margin: 0;
-        font-size: 0.9rem;
-        line-height: 1.5;
     }
 
     .footer {
