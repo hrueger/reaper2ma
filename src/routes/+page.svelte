@@ -259,7 +259,7 @@
 
 <main class="container">
     <header class="header">
-        <h1 class="title">🎶 Reaper Makers to GrandMA3 💡</h1>
+        <h1 class="title">🎶 Reaper Markers to GrandMA3 💡</h1>
         <p class="subtitle">Auto-generate your GrandMA3 cues based on Reaper audio markers!</p>
     </header>
 
@@ -371,13 +371,82 @@
 </main>
 
 <style>
+    :global(:root) {
+        /* Light theme variables */
+        --bg-gradient-start: #667eea;
+        --bg-gradient-end: #764ba2;
+        --text-primary: #333;
+        --text-secondary: #666;
+        --text-white: white;
+        --card-bg: white;
+        --card-border: rgba(255, 255, 255, 0.2);
+        --upload-bg: #fafafa;
+        --upload-hover: #f0f4ff;
+        --upload-success: #f0fdf4;
+        --upload-processing: #fffbeb;
+        --border-light: #e5e7eb;
+        --border-hover: #9ca3af;
+        --accent-blue: #667eea;
+        --accent-green: #22c55e;
+        --accent-orange: #f59e0b;
+        --accent-red: #ef4444;
+        --accent-red-dark: #dc2626;
+        --input-bg: white;
+        --shadow-light: rgba(0, 0, 0, 0.1);
+        --shadow-medium: rgba(0, 0, 0, 0.2);
+        --info-bg: rgba(255, 255, 255, 0.95);
+        --info-border: rgba(255, 255, 255, 0.3);
+        --step-bg: #f8fafc;
+        --note-bg: #f0f9ff;
+        --note-border: #0ea5e9;
+    }
+
+    :global(:root) {
+        color-scheme: light dark;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :global(:root) {
+            /* Dark theme variables */
+            --bg-gradient-start: #1e1b4b;
+            --bg-gradient-end: #312e81;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-white: #f9fafb;
+            --card-bg: #1f2937;
+            --card-border: rgba(75, 85, 99, 0.3);
+            --upload-bg: #374151;
+            --upload-hover: #1e3a8a;
+            --upload-success: #064e3b;
+            --upload-processing: #451a03;
+            --border-light: #4b5563;
+            --border-hover: #6b7280;
+            --accent-blue: #818cf8;
+            --accent-green: #34d399;
+            --accent-orange: #fbbf24;
+            --accent-red: #f87171;
+            --accent-red-dark: #ef4444;
+            --input-bg: #374151;
+            --shadow-light: rgba(0, 0, 0, 0.3);
+            --shadow-medium: rgba(0, 0, 0, 0.5);
+            --info-bg: rgba(31, 41, 55, 0.95);
+            --info-border: rgba(75, 85, 99, 0.3);
+            --step-bg: #4b5563;
+            --note-bg: #1e3a8a;
+            --note-border: #3b82f6;
+        }
+    }
+
     :global(body) {
         margin: 0;
         padding: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
         min-height: 100vh;
-        color: #333;
+        color: var(--text-primary);
+        transition:
+            background 0.3s ease,
+            color 0.3s ease;
     }
 
     .container {
@@ -392,7 +461,7 @@
 
     .header {
         text-align: center;
-        color: white;
+        color: var(--text-white);
         margin-bottom: 1rem;
     }
 
@@ -400,7 +469,7 @@
         font-size: 2.5rem;
         font-weight: 700;
         margin: 0 0 0.5rem 0;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 2px 4px var(--shadow-light);
     }
 
     .subtitle {
@@ -411,12 +480,15 @@
     }
 
     .card {
-        background: white;
+        background: var(--card-bg);
         border-radius: 16px;
         padding: 2rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 10px 30px var(--shadow-medium);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid var(--card-border);
+        transition:
+            background 0.3s ease,
+            border 0.3s ease;
     }
 
     .upload-section {
@@ -434,52 +506,52 @@
     }
 
     .upload-area {
-        border: 3px dashed #ddd;
+        border: 3px dashed var(--border-light);
         border-radius: 12px;
         padding: 3rem 2rem;
         text-align: center;
-        background: #fafafa;
+        background: var(--upload-bg);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
     }
 
     .upload-area:hover {
-        border-color: #667eea;
-        background: #f0f4ff;
+        border-color: var(--accent-blue);
+        background: var(--upload-hover);
     }
 
     .upload-area.has-file {
-        border-color: #22c55e;
-        background: #f0fdf4;
+        border-color: var(--accent-green);
+        background: var(--upload-success);
         border-style: solid;
     }
 
     .upload-area.drag-over {
-        border-color: #667eea;
-        background: #f0f4ff;
+        border-color: var(--accent-blue);
+        background: var(--upload-hover);
         transform: scale(1.02);
         box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
     }
 
     .upload-area.processing {
-        border-color: #f59e0b;
-        background: #fffbeb;
+        border-color: var(--accent-orange);
+        background: var(--upload-processing);
         pointer-events: none;
     }
 
     .upload-icon {
-        color: #666;
+        color: var(--text-secondary);
         margin-bottom: 1rem;
         transition: color 0.3s ease;
     }
 
     .upload-area:hover .upload-icon {
-        color: #667eea;
+        color: var(--accent-blue);
     }
 
     .upload-area.has-file .upload-icon {
-        color: #22c55e;
+        color: var(--accent-green);
     }
 
     .upload-text {
@@ -487,25 +559,25 @@
         font-size: 1.1rem;
         font-weight: 500;
         margin-bottom: 0.5rem;
-        color: #333;
+        color: var(--text-primary);
     }
 
     .upload-hint {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-secondary);
         display: block;
     }
 
     .processing-text {
-        color: #f59e0b !important;
+        color: var(--accent-orange) !important;
         font-weight: 600;
     }
 
     .spinner {
         width: 32px;
         height: 32px;
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #f59e0b;
+        border: 3px solid var(--border-light);
+        border-top: 3px solid var(--accent-orange);
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin-bottom: 1rem;
@@ -536,21 +608,21 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.75rem 1.5rem;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        color: white;
+        background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+        color: var(--text-white);
         border: none;
         border-radius: 8px;
         font-size: 0.9rem;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+        box-shadow: 0 2px 4px var(--shadow-light);
     }
 
     .new-file-button:hover {
-        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        background: linear-gradient(135deg, var(--accent-red-dark), #b91c1c);
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        box-shadow: 0 4px 8px var(--shadow-medium);
     }
 
     .new-file-button:active {
@@ -579,7 +651,7 @@
 
     .label-text {
         font-weight: 600;
-        color: #333;
+        color: var(--text-primary);
         font-size: 0.95rem;
         display: block;
         margin-bottom: 0.25rem;
@@ -587,42 +659,46 @@
 
     .label-hint {
         font-size: 0.8rem;
-        color: #666;
+        color: var(--text-secondary);
         display: block;
         font-weight: normal;
     }
 
     .number-input {
         padding: 0.75rem 1rem;
-        border: 2px solid #e5e7eb;
+        border: 2px solid var(--border-light);
         border-radius: 8px;
         font-size: 1rem;
         transition: all 0.2s ease;
-        background: white;
+        background: var(--input-bg);
+        color: var(--text-primary);
     }
 
     .number-input:focus {
         outline: none;
-        border-color: #667eea;
+        border-color: var(--accent-blue);
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .number-input:hover {
-        border-color: #9ca3af;
+        border-color: var(--border-hover);
     }
 
     .info-card {
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--info-bg);
         border-radius: 16px;
         padding: 2rem;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: #333;
+        border: 1px solid var(--info-border);
+        color: var(--text-primary);
+        transition:
+            background 0.3s ease,
+            border 0.3s ease;
     }
 
     .info-card h3 {
         margin: 0 0 1.5rem 0;
-        color: #333;
+        color: var(--text-primary);
         font-size: 1.4rem;
         text-align: center;
     }
@@ -638,14 +714,15 @@
         align-items: center;
         gap: 1rem;
         padding: 1rem;
-        background: #f8fafc;
+        background: var(--step-bg);
         border-radius: 8px;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid var(--accent-blue);
+        transition: background 0.3s ease;
     }
 
     .step-number {
-        background: #667eea;
-        color: white;
+        background: var(--accent-blue);
+        color: var(--text-white);
         width: 32px;
         height: 32px;
         border-radius: 50%;
@@ -654,6 +731,20 @@
         justify-content: center;
         font-weight: 600;
         flex-shrink: 0;
+    }
+
+    .note {
+        background: var(--note-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--note-border);
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+        transition:
+            background 0.3s ease,
+            border 0.3s ease;
     }
 
     .footer {
