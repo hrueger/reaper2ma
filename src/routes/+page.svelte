@@ -333,7 +333,7 @@
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <div>Export markers from Reaper as CSV using <code>Actions > Show Actions List > Export Markers (doubel click)</code></div>
+                <div>Export markers from Reaper as CSV using <code>Actions > Show Actions List > Export Markers (double click)</code></div>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
