@@ -6,6 +6,7 @@
     let uploadArea: HTMLElement;
     let sequenceNumber = 101;
     let driveNumber = 2;
+    let prefix = "1";
     let isDragOver = false;
     let isProcessing = false;
     let processingStatus = "";
@@ -111,7 +112,7 @@
                 } else {
                     acc.push({
                         color: curr.color,
-                        name: curr.name,
+                        name: `${prefix} - ${curr.name}`,
                         timestamps: [curr.start],
                         sequenceNumber: sqCounter++,
                     });
@@ -436,9 +437,17 @@
             <div class="input-group">
                 <label for="sequence-number" class="label">
                     <span class="label-text">Sequence Number</span>
-                    <span class="label-hint">Target sequence in GrandMA3 (1-9999)</span>
+                    <span class="label-hint">Target sequence (1-9999)</span>
                 </label>
-                <input id="sequence-number" type="number" min="1" max="9999" step="1" bind:value={sequenceNumber} class="number-input" />
+                <input id="sequence-number" type="number" min="1" max="9999" step="1" bind:value={sequenceNumber} class="input" />
+            </div>
+
+            <div class="input-group">
+                <label for="prefix" class="label">
+                    <span class="label-text">Prefix</span>
+                    <span class="label-hint">e.g. Song Number</span>
+                </label>
+                <input id="prefix" type="text" bind:value={prefix} class="input" />
             </div>
 
             <div class="input-group">
@@ -446,7 +455,7 @@
                     <span class="label-text">Drive Number</span>
                     <span class="label-hint">Drive to use for import (1-8)</span>
                 </label>
-                <input id="drive-number" type="number" min="1" max="8" step="1" bind:value={driveNumber} class="number-input" />
+                <input id="drive-number" type="number" min="1" max="8" step="1" bind:value={driveNumber} class="input" />
             </div>
         </div>
     </div>
@@ -766,7 +775,7 @@
 
     .settings-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 2rem;
     }
 
@@ -795,7 +804,7 @@
         font-weight: normal;
     }
 
-    .number-input {
+    .input {
         padding: 0.75rem 1rem;
         border: 2px solid var(--border-light);
         border-radius: 8px;
@@ -805,13 +814,13 @@
         color: var(--text-primary);
     }
 
-    .number-input:focus {
+    .input:focus {
         outline: none;
         border-color: var(--accent-blue);
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
-    .number-input:hover {
+    .input:hover {
         border-color: var(--border-hover);
     }
 
