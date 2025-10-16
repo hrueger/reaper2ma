@@ -1,38 +1,43 @@
-# sv
+# 🎶 Reaper Markers to GrandMA3 💡
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A web application for converting Reaper project markers to MA (Moving Light) timecode formats. This tool helps lighting professionals and audio engineers convert timing markers from Reaper DAW projects into formats suitable for lighting consoles and show control systems.
 
-## Creating a project
+## Use the tool
 
-If you're seeing this, you've probably already done this step. Congrats!
+🚀 **[Use Reaper2MA online](https://projects.hannesrueger.de/reaper2ma/)**
+
+No installation or signup required - simply upload your Reaper project file and get your converted markers instantly for free.
+
+## Features
+
+-   Auto-Convert Reaper project markers to MA timecode
+-   Support for repeated and unique sequences / cues
+-   Web-based interface for easy access
+-   No software installation required
+
+## Contributing
+
+Contributions are welcome! If you'd like to contribute to this project:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/new-feature`)
+3. Make your changes
+4. Commit your changes (`git commit -am 'Add new feature'`)
+5. Push to the branch (`git push origin feature/new-feature`)
+6. Create a Pull Request
+
+## Development
+
+This project is built with SvelteKit. To run it locally:
 
 ```sh
-# create a new project in the current directory
-npx sv create
+# Install dependencies
+pnpm install
 
-# create a new project in my-app
-npx sv create my-app
+# Start development server
+pnpm dev
 ```
 
-## Developing
+## License
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+MIT
