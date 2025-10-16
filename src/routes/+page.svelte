@@ -66,10 +66,24 @@
                 return obj;
             }) as { "#": string; Name: string; Start: string }[];
 
-            const data = dataByHeader.map((item) => ({
-                name: item.Name.replace(/[^a-zA-Z0-9äöüÄÖÜß \-_#%\/\(\)\[\]=+]/g, ""),
-                start: item.Start,
-            }));
+            const seenNameCount: Record<string, number> = {};
+            const data = dataByHeader
+                .map((item) => {
+                    let name = item.Name.replace(/[^a-zA-Z0-9äöüÄÖÜß \-_#%\/\(\)\[\]=+]/g, "");
+                    seenNameCount[name] = (seenNameCount[name] || 0) + 1;
+                    if (seenNameCount[name] > 1) {
+                        name += ` ${seenNameCount[name]}`;
+                    }
+                    return {
+                        name: name,
+                        start: item.Start,
+                    };
+                })
+                .map((item) => ({
+                    ...item,
+                    // add 1 for the first ones
+                    name: seenNameCount[item.name] > 1 ? `${item.name} 1` : item.name,
+                }));
 
             processingStatus = "Generating XML files...";
             await new Promise((resolve) => setTimeout(resolve, 100));
