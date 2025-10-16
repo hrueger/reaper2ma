@@ -1,12 +1,12 @@
 # 🎶 Reaper Markers to GrandMA3 💡
 
-A web application for converting Reaper project markers to MA (Moving Light) timecode formats. This tool helps lighting professionals and audio engineers convert timing markers from Reaper DAW projects into formats suitable for lighting consoles and show control systems.
+A web application for converting Reaper project markers to grandMA3 timecode formats. This tool helps lighting professionals and audio engineers convert timing markers from Reaper DAW projects into formats suitable for lighting consoles and show control systems.
 
 ## Use the tool
 
 🚀 **[Use Reaper2MA online](https://projects.hannesrueger.de/reaper2ma/)**
 
-No installation or signup required - simply upload your Reaper project file and get your converted markers instantly for free.
+No installation or signup required - simply upload a csv exported from your Reaper project and get your converted markers instantly for free.
 
 ## Demo
 
@@ -14,7 +14,7 @@ Check out the link above. You can create your own Reaper project or use [this de
 
 ## Features
 
--   Auto-Convert Reaper project markers to MA timecode
+-   Auto-Convert markers from csv to MA timecode
 -   Support for repeated and unique sequences / cues
 -   Web-based interface for easy access
 -   No software installation required
