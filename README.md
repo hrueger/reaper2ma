@@ -8,12 +8,20 @@ A web application for converting Reaper project markers to MA (Moving Light) tim
 
 No installation or signup required - simply upload your Reaper project file and get your converted markers instantly for free.
 
+## Demo
+
+Check out the link above. You can create your own Reaper project or use [this demo file (click here to download)](./demo/demo.RPP).
+
 ## Features
 
 -   Auto-Convert Reaper project markers to MA timecode
 -   Support for repeated and unique sequences / cues
 -   Web-based interface for easy access
 -   No software installation required
+
+| From this              | To this            |
+| ---------------------- | ------------------ |
+| ![](./demo/reaper.png) | ![](./demo/ma.png) |
 
 ## Contributing
 
