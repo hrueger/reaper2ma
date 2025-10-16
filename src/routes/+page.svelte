@@ -505,7 +505,7 @@
     </div>
 
     <footer class="footer">
-        <p>Made with ❤️ and Svelte</p>
+        <p>Made with ❤️ and Svelte - View <a href="https://github.com/hrueger/reaper2ma">Source on GitHub</a></p>
         <p>&copy; 2025 Hannes Rüger</p>
     </footer>
 </main>
