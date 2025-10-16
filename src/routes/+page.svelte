@@ -14,9 +14,19 @@
     type ParsedData = {
         name: string;
         start: string;
+        color: string;
     }[];
+
+    type RepeatedSequenceData = {
+        color: string;
+        name: string;
+        timestamps: string[];
+        sequenceNumber: number;
+    }[];
+
     type FullData = {
-        data: ParsedData;
+        uniqueSequences: ParsedData;
+        repeatedSequences: RepeatedSequenceData;
         filename: string;
     };
 
@@ -49,6 +59,10 @@
         URL.revokeObjectURL(url);
     }
 
+    function safeName(name: string): string {
+        return name.replace(/[^a-zA-Z0-9äöüÄÖÜß \-_#%\/\(\)\[\]=+]/g, "");
+    }
+
     async function processCsv(dataString: string, filename: string) {
         isProcessing = true;
         processingStatus = "Parsing CSV data...";
@@ -64,34 +78,54 @@
                     obj[header[index]] = value;
                 });
                 return obj;
-            }) as { "#": string; Name: string; Start: string }[];
+            }) as { "#": string; Name: string; Start: string; Color: string }[];
 
             const seenNameCount: Record<string, number> = {};
+
             const data = dataByHeader
                 .map((item) => {
-                    let name = item.Name.replace(/[^a-zA-Z0-9äöüÄÖÜß \-_#%\/\(\)\[\]=+]/g, "");
+                    let name = safeName(item.Name);
                     seenNameCount[name] = (seenNameCount[name] || 0) + 1;
-                    if (seenNameCount[name] > 1) {
-                        name += ` ${seenNameCount[name]}`;
-                    }
                     return {
                         name: name,
                         start: item.Start,
+                        color: item.Color,
                     };
                 })
+                .reverse()
                 .map((item) => ({
                     ...item,
                     // add 1 for the first ones
-                    name: seenNameCount[item.name] > 1 ? `${item.name} 1` : item.name,
-                }));
+                    name: seenNameCount[item.name] > 1 ? `${item.name} ${seenNameCount[item.name]--}` : item.name,
+                }))
+                .reverse();
+
+            const uniqueSequences = data.filter((item) => !item.color);
+            const repeatedSequenceList = data.filter((item) => item.color);
+
+            let sqCounter = sequenceNumber + 1;
+            const repeatedSequences: RepeatedSequenceData = repeatedSequenceList.reduce((acc, curr, index) => {
+                const existing = acc.find((item) => item.color === curr.color);
+                if (existing) {
+                    existing.timestamps.push(curr.start);
+                } else {
+                    acc.push({
+                        color: curr.color,
+                        name: curr.name,
+                        timestamps: [curr.start],
+                        sequenceNumber: sqCounter++,
+                    });
+                }
+                return acc;
+            }, [] as RepeatedSequenceData);
 
             processingStatus = "Generating XML files...";
             await new Promise((resolve) => setTimeout(resolve, 100));
 
-            const xmlContent = generateMacroXML({ data, filename });
+            const xmlContent = generateMacroXML({ repeatedSequences, uniqueSequences, filename });
             downloadContentWithName(xmlContent, `${filename}_macro.xml`);
 
-            const timecodeContent = generateTimecodeXML({ data, filename });
+            const timecodeContent = generateTimecodeXML({ repeatedSequences, uniqueSequences, filename });
             downloadContentWithName(timecodeContent, `${filename}_timecode.xml`);
 
             processingStatus = "✅ Files generated successfully!";
@@ -161,7 +195,13 @@
         },
     };
 
-    function generateMacroXML({ data, filename }: FullData): string {
+    function generateGUID() {
+        return Array.from({ length: 16 }, () => Math.floor(Math.random() * 256))
+            .map((b) => b.toString(16).padStart(2, "0").toUpperCase())
+            .join(" ");
+    }
+
+    function generateMacroXML({ repeatedSequences, uniqueSequences, filename }: FullData): string {
         const obj = {
             ...XML_HEADER,
             GMA3: {
@@ -170,14 +210,33 @@
                     "@_Name": `Macro ${filename}`,
                     "@_Guid": "00 00 00 00 A8 F8 B9 20 78 06 00 00 A5 46 09 AA",
                     MacroLine: [
+                        // unique sequences
                         {
-                            "@_Command": `Store Sequence ${sequenceNumber} Cue 1 thru ${data.length}`,
+                            "@_Command": `Store Sequence ${sequenceNumber} Cue 1 thru ${uniqueSequences.length}`,
                             "@_Wait": "0.10",
                         },
-                        ...data.map((item, index) => ({
+                        ...uniqueSequences.map((item, index) => ({
                             "@_Command": `Label Sequence ${sequenceNumber} Cue ${index + 1} "${item.name}"`,
                             "@_Wait": "0.10",
                         })),
+                        /// repeated sequences
+                        ...repeatedSequences.flatMap((u, index) => {
+                            return [
+                                {
+                                    "@_Command": `Store Sequence ${u.sequenceNumber} "${u.name}"`,
+                                    "@_Wait": "0.10",
+                                },
+                                {
+                                    "@_Command": `Store Cue 1 Sequence ${u.sequenceNumber} /Merge`,
+                                    "@_Wait": "0.10",
+                                },
+                                {
+                                    "@_Command": `Set Sequence ${u.sequenceNumber} Cue "OffCue" Property "TRIGTYPE" "Follow"`,
+                                    "@_Wait": "0.10",
+                                },
+                            ];
+                        }),
+                        /// Timecode Import
                         {
                             "@_Command": `Drive ${driveNumber}`,
                             "@_Wait": "0.10",
@@ -194,7 +253,7 @@
         return builder.build(obj);
     }
 
-    function generateTimecodeXML({ data, filename }: FullData): string {
+    function generateTimecodeXML({ uniqueSequences, repeatedSequences, filename }: FullData): string {
         const obj = {
             ...XML_HEADER,
             GMA3: {
@@ -203,61 +262,111 @@
                     "@_Name": filename,
                     "@_Guid": "00 00 00 00 3F 76 B7 04 32 0B 00 00 68 A1 4F AA",
                     "@_Cursor": "00.00",
-                    "@_Duration": data.length > 0 ? (parseFloat(data[data.length - 1].start) + 1).toFixed(3) : "0.00",
+                    "@_Duration": uniqueSequences.length > 0 ? (parseFloat(uniqueSequences[uniqueSequences.length - 1].start) + 1).toFixed(3) : "0.00",
                     "@_LoopCount": "0",
                     "@_TCSlot": "-1",
                     "@_SwitchOff": "Keep Playbacks",
                     "@_Goto": "as Go",
                     "@_Timedisplayformat": "<10d11h23m45>",
                     "@_FrameReadout": "<Seconds>",
-                    TrackGroup: {
-                        "@_Play": "",
-                        "@_Rec": "",
-                        MarkerTrack: {
-                            "@_Name": "Marker",
-                            "@_Guid": "00 00 00 00 B1 F5 25 5F 70 04 00 00 28 74 D0 4B",
-                        },
-                        Track: {
-                            "@_Guid": "00 00 00 00 B7 10 04 13 3B 0B 00 00 38 E1 4F AA",
-                            "@_Target": `ShowData.DataPools.Default.Sequences.Sequence ${sequenceNumber}`,
+                    TrackGroup: [
+                        {
                             "@_Play": "",
                             "@_Rec": "",
-                            TimeRange: {
-                                "@_Guid": "00 00 00 00 21 68 E5 6F 3C 0B 00 00 38 E1 4F AA",
+                            MarkerTrack: {
+                                "@_Name": "Marker",
+                                "@_Guid": "00 00 00 00 B1 F5 25 5F 70 04 00 00 28 74 D0 4B",
+                            },
+                            Track: {
+                                "@_Guid": "00 00 00 00 B7 10 04 13 3B 0B 00 00 38 E1 4F AA",
+                                "@_Target": `ShowData.DataPools.Default.Sequences.Sequence ${sequenceNumber}`,
                                 "@_Play": "",
                                 "@_Rec": "",
-                                CmdSubTrack: {
-                                    CmdEvent: data.map((item, index) => ({
-                                        "@_Name": "Go+",
-                                        "@_Time": item.start,
-                                        RealtimeCmd: {
-                                            "@_Type": "Key",
-                                            "@_Source": "Original",
-                                            "@_UserProfile": "0",
-                                            "@_Status": "On",
-                                            "@_IsRealtime": "1",
-                                            "@_IsXFade": "0",
-                                            "@_IgnoreFollow": "0",
-                                            "@_IgnoreCommand": "0",
-                                            "@_Assert": "0",
-                                            "@_IgnoreNetwork": "0",
-                                            "@_FromTriggerNode": "0",
-                                            "@_IgnoreExecTime": "0",
-                                            "@_IssuedByTimecode": "0",
-                                            "@_FromLocalHardwareFader": "1",
-                                            ...(index == 0
-                                                ? {
-                                                      "@_Object": `ShowData.DataPools.Default.Sequences.Sequence ${sequenceNumber}`,
-                                                  }
-                                                : {}),
-                                            "@_ExecToken": "Go+",
-                                            "@_ValCueDestination": `ShowData.DataPools.Default.Sequences.Sequence ${sequenceNumber}.${item.name}`,
-                                        },
-                                    })),
+                                TimeRange: {
+                                    "@_Guid": "00 00 00 00 21 68 E5 6F 3C 0B 00 00 38 E1 4F AA",
+                                    "@_Play": "",
+                                    "@_Rec": "",
+                                    CmdSubTrack: {
+                                        CmdEvent: uniqueSequences.map((item, index) => ({
+                                            "@_Name": "Go+",
+                                            "@_Time": item.start,
+                                            RealtimeCmd: {
+                                                "@_Type": "Key",
+                                                "@_Source": "Original",
+                                                "@_UserProfile": "0",
+                                                "@_Status": "On",
+                                                "@_IsRealtime": "1",
+                                                "@_IsXFade": "0",
+                                                "@_IgnoreFollow": "0",
+                                                "@_IgnoreCommand": "0",
+                                                "@_Assert": "0",
+                                                "@_IgnoreNetwork": "0",
+                                                "@_FromTriggerNode": "0",
+                                                "@_IgnoreExecTime": "0",
+                                                "@_IssuedByTimecode": "0",
+                                                "@_FromLocalHardwareFader": "1",
+                                                ...(index == 0
+                                                    ? {
+                                                          "@_Object": `ShowData.DataPools.Default.Sequences.Sequence ${sequenceNumber}`,
+                                                      }
+                                                    : {}),
+                                                "@_ExecToken": "Go+",
+                                                "@_ValCueDestination": `ShowData.DataPools.Default.Sequences.Sequence ${sequenceNumber}.${item.name}`,
+                                            },
+                                        })),
+                                    },
                                 },
                             },
                         },
-                    },
+                        {
+                            "@_Play": "",
+                            "@_Rec": "",
+                            MarkerTrack: {
+                                "@_Name": "Marker",
+                                "@_Guid": "00 00 00 00 B1 F5 25 5F 70 04 00 00 28 74 D0 4C",
+                            },
+                            Track: repeatedSequences.map((item) => ({
+                                "@_Guid": generateGUID(),
+                                "@_Target": `ShowData.DataPools.Default.Sequences.${item.name}`,
+                                "@_Play": "",
+                                "@_Rec": "",
+                                TimeRange: {
+                                    "@_Guid": generateGUID(),
+                                    "@_Play": "",
+                                    "@_Rec": "",
+                                    CmdSubTrack: {
+                                        CmdEvent: item.timestamps.map((timestamp, index) => ({
+                                            "@_Name": "Go+",
+                                            "@_Time": timestamp,
+                                            RealtimeCmd: {
+                                                "@_Type": "Key",
+                                                "@_Source": "Original",
+                                                "@_UserProfile": "0",
+                                                "@_Status": "On",
+                                                "@_IsRealtime": "1",
+                                                "@_IsXFade": "0",
+                                                "@_IgnoreFollow": "0",
+                                                "@_IgnoreCommand": "0",
+                                                "@_Assert": "0",
+                                                "@_IgnoreNetwork": "0",
+                                                "@_FromTriggerNode": "0",
+                                                "@_IgnoreExecTime": "0",
+                                                "@_IssuedByTimecode": "0",
+                                                "@_FromLocalHardwareFader": "1",
+                                                ...(index == 0
+                                                    ? {
+                                                          "@_Object": `ShowData.DataPools.Default.Sequences.${item.name}`,
+                                                      }
+                                                    : {}),
+                                                "@_ExecToken": "Go+",
+                                                "@_ValCueDestination": `ShowData.DataPools.Default.Sequences.${item.name}.Cue 1`,
+                                            },
+                                        })),
+                                    },
+                                },
+                            })),
+                        },
+                    ],
                 },
             },
         };
@@ -347,18 +456,26 @@
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <div>Export markers from Reaper as CSV using <code>Actions > Show Actions List > Export Markers (double click)</code></div>
+                <div>In Reaper, create a marker for each cue. Use the default color for cues in the master cuestack. Use different colors for each effect sequence (e.g. bass drum, snair, crash, ...) which will become a single sequence with one cue</div>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <div>Upload the CSV file above</div>
+                <div>Ensure that your time unit in <code>View > Time Unit for Ruler</code> is set to <code>Seconds</code></div>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <div>Two XML files will be downloaded automatically</div>
+                <div>Export markers from Reaper as CSV using <code>Actions > Show Actions List > Export Markers (double click)</code></div>
             </div>
             <div class="step">
                 <div class="step-number">4</div>
+                <div>Upload the CSV file above</div>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <div>Two XML files will be downloaded automatically</div>
+            </div>
+            <div class="step">
+                <div class="step-number">6</div>
                 <div>
                     Move them to the following location:
                     <ul>
@@ -368,11 +485,11 @@
                 </div>
             </div>
             <div class="step">
-                <div class="step-number">5</div>
-                <div>In GrandMA3, press Edit, then on an empty slot in the Macros Data Pool and import the Macro XML file.</div>
+                <div class="step-number">7</div>
+                <div>In GrandMA3, press Edit, then on an empty slot in the Macros Data Pool and import the Macro XML file</div>
             </div>
             <div class="step">
-                <div class="step-number">5</div>
+                <div class="step-number">8</div>
                 <div>Execute your macro and have fun!</div>
             </div>
         </div>
