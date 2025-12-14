@@ -7,6 +7,7 @@
     let sequenceNumber = 101;
     let driveNumber = 2;
     let prefix = "1";
+    let exportMode: "cues-and-timecode" | "cues-only" = "cues-and-timecode";
     let isDragOver = false;
     let isProcessing = false;
     let processingStatus = "";
@@ -126,8 +127,10 @@
             const xmlContent = generateMacroXML({ repeatedSequences, uniqueSequences, filename });
             downloadContentWithName(xmlContent, `${filename}_macro.xml`);
 
-            const timecodeContent = generateTimecodeXML({ repeatedSequences, uniqueSequences, filename });
-            downloadContentWithName(timecodeContent, `${filename}_timecode.xml`);
+            if (exportMode === "cues-and-timecode") {
+                const timecodeContent = generateTimecodeXML({ repeatedSequences, uniqueSequences, filename });
+                downloadContentWithName(timecodeContent, `${filename}_timecode.xml`);
+            }
 
             processingStatus = "✅ Files generated successfully!";
             setTimeout(() => {
@@ -237,15 +240,19 @@
                                 },
                             ];
                         }),
-                        /// Timecode Import
-                        {
-                            "@_Command": `Drive ${driveNumber}`,
-                            "@_Wait": "0.10",
-                        },
-                        {
-                            "@_Command": `import Timecode "${filename}_timecode"`,
-                            "@_Wait": "0.10",
-                        },
+                        /// Timecode Import (only if exportMode is cues-and-timecode)
+                        ...(exportMode === "cues-and-timecode"
+                            ? [
+                                  {
+                                      "@_Command": `Drive ${driveNumber}`,
+                                      "@_Wait": "0.10",
+                                  },
+                                  {
+                                      "@_Command": `import Timecode "${filename}_timecode"`,
+                                      "@_Wait": "0.10",
+                                  },
+                              ]
+                            : []),
                     ],
                 },
             },
@@ -450,12 +457,28 @@
                 <input id="prefix" type="text" bind:value={prefix} class="input" />
             </div>
 
-            <div class="input-group">
+            <div class="input-group" class:disabled={exportMode === "cues-only"}>
                 <label for="drive-number" class="label">
                     <span class="label-text">Drive Number</span>
                     <span class="label-hint">Drive to use for import (1-8)</span>
                 </label>
-                <input id="drive-number" type="number" min="1" max="8" step="1" bind:value={driveNumber} class="input" />
+                <input id="drive-number" type="number" min="1" max="8" step="1" bind:value={driveNumber} class="input" disabled={exportMode === "cues-only"} />
+            </div>
+        </div>
+
+        <div class="export-mode-section">
+            <div class="label">
+                <span class="label-text">Export Mode</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" bind:group={exportMode} value="cues-and-timecode" class="radio-input" />
+                    <span class="radio-text">Cues & Timecode</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" bind:group={exportMode} value="cues-only" class="radio-input" />
+                    <span class="radio-text">Cues Only</span>
+                </label>
             </div>
         </div>
     </div>
@@ -773,6 +796,53 @@
         flex-shrink: 0;
     }
 
+    .export-mode-section {
+        margin-top: 1.5rem;
+    }
+
+    .radio-group {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-top: 0.75rem;
+    }
+
+    .radio-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: var(--upload-bg);
+    }
+
+    .radio-label:hover {
+        border-color: var(--accent-blue);
+        background: var(--upload-hover);
+    }
+
+    .radio-input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--accent-blue);
+    }
+
+    .radio-text {
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .radio-label:has(.radio-input:checked) {
+        border-color: var(--accent-blue);
+        background: var(--upload-hover);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
     .settings-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -782,6 +852,11 @@
     .input-group {
         display: flex;
         flex-direction: column;
+    }
+
+    .input-group.disabled {
+        opacity: 0.5;
+        pointer-events: none;
     }
 
     .label {
@@ -906,6 +981,10 @@
 
         .card {
             padding: 1.5rem;
+        }
+
+        .radio-group {
+            grid-template-columns: 1fr;
         }
 
         .settings-grid {
